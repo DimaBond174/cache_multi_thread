@@ -1,0 +1,10 @@
+{
+"TEST_MAXSIZE" :1000000,
+"START_LOGPOINT"   :1000,
+"LOAD_DATA_FROM_TEST_CASE_FILE" :0,
+"MAKE_HASH_NOT_UNIQUE" :0,
+"FileWithTestData" :"./testCase.txt",
+"TestResultsDir" :"./testResults",
+"The number of threads to insert":1,
+"The number of threads to find":1
+}
