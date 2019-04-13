@@ -1,3 +1,11 @@
+/*
+ * This is the source code of SpecNet project
+ * It is licensed under MIT License.
+ *
+ * Copyright (c) Dmitriy Bondarenko
+ * feel free to contact me: specnet.messenger@gmail.com
+ */
+
 #include "testcase1.h"
 
 #include <math.h>
@@ -193,7 +201,7 @@ void  TestCase1::start_Nthread_tests()  {
   make_header(startSize,  testSize,  &str);
   csvfile.write (str.c_str(), str.length());
 
-  for (auto&&  it_tester  :  testers_1thread)  {
+  for (auto&&  it_tester  :  testers_Nthread)  {
     IAlgorithmTester  *p_tester  =  it_tester.get();
 
     str.clear();

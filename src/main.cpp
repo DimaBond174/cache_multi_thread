@@ -11,6 +11,7 @@
 #include "i/itester.h"
 #include "cases/testcase1.h"
 #include "testers/testoncachem.h"
+#include "testers/testfacebookcache.h"
 
 
 int main(int  argc,  char  **argv)  {
@@ -38,7 +39,8 @@ int main(int  argc,  char  **argv)  {
 
   //  Testers:
   std::deque<std::shared_ptr<IAlgorithmTester>>  algorithms_list;
-  algorithms_list.emplace_back(std::make_shared<TestOnCacheM>());
+  //algorithms_list.emplace_back(std::make_shared<TestOnCacheM>());
+  algorithms_list.emplace_back(std::make_shared<TestFacebookCache>());
 
   //  Run tests:
   for (auto&& it_case :  cases_list) {
@@ -46,9 +48,10 @@ int main(int  argc,  char  **argv)  {
     p_case->prepareTestCase(cur_config,  cur_system);
     for (auto&& it_algorithm :  algorithms_list) {
       p_case->addAlgorithmTester_1thread(it_algorithm);
+      p_case->addAlgorithmTester_Nthread(it_algorithm);
     }
-    //p_case->start_1thread_tests();
-    p_case->start_Nthread_tests();
+    p_case->start_1thread_tests();
+    //p_case->start_Nthread_tests();
     p_case->stop();
   }
 

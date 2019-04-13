@@ -29,6 +29,7 @@ set(SPEC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
 set(SPEC_INCLUDE    
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/intel/include
     )
 
 
@@ -89,15 +90,19 @@ file(GLOB_RECURSE DEF_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/testers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/caches/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/caches/*.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/src/caches/facebook/*.h
-#    ${CMAKE_CURRENT_SOURCE_DIR}/src/caches/facebook/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/caches/facebook/*.h    
 )
 
 
 set(SPEC_SRC
     ${SPEC_SRC}
     ${DEF_SRC}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/intel/src/tbb/concurrent_hash_map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/intel/src/tbb/cache_aligned_allocator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/intel/src/tbb/spin_rw_mutex.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/intel/src/tbb/dynamic_link.cpp
     )
+
 message("SPEC_SRC: ${SPEC_SRC}")
 
 # Output folder for binaries
