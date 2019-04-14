@@ -6,27 +6,29 @@
  * feel free to contact me: specnet.messenger@gmail.com
  */
 
-#include "testoncachem.h"
+#include "testoncachemlru.h"
 #include "spec/specstatic.h"
 #include <memory>
 
-TestOnCacheM::TestOnCacheM()   {
+TestOnCacheMLRU::TestOnCacheMLRU()
+{
 
 }
 
-TestOnCacheM::~TestOnCacheM() {
+
+TestOnCacheMLRU::~TestOnCacheMLRU() {
   onStop();
 }
 
-void  TestOnCacheM::onStart(std::shared_ptr<IConfig>  &cfg)  {
+void  TestOnCacheMLRU::onStart(std::shared_ptr<IConfig>  &cfg)  {
   int64_t  capacity  = cfg.get()->getLongValue("capacity");
   assert(capacity > 0);
   onStop() ;
-  cache  =  new OnCacheM<TKey *, Elem *>(capacity);
+  cache  =  new OnCacheMLRU<TKey *, Elem *>(capacity);
   return;
 }
 
-void  TestOnCacheM::onStop()  {
+void  TestOnCacheMLRU::onStop()  {
   if (cache) {
     delete  cache;
     cache  =  nullptr;
@@ -34,13 +36,13 @@ void  TestOnCacheM::onStop()  {
   return;
 }
 
-void  TestOnCacheM::insert(Elem  *elem)  {
+void  TestOnCacheMLRU::insert(Elem  *elem)  {
   cache->insertNode(&(elem->key),
                     std::make_shared<Elem *>(elem));
   return;
 }
 
-bool  TestOnCacheM::exist(Elem  *elem)  {
+bool  TestOnCacheMLRU::exist(Elem  *elem)  {
   bool  re  =  false;
   std::shared_ptr<Elem *> p_elem  =  cache->getData(&elem->key);
   if (p_elem  &&  *p_elem.get() == elem) {
@@ -52,7 +54,8 @@ bool  TestOnCacheM::exist(Elem  *elem)  {
   return  re;
 }
 
-const char *  TestOnCacheM::get_algorithm_name()  {
+const char *  TestOnCacheMLRU::get_algorithm_name()  {
   static ConstString my_name("OnCacheM");
   return  my_name.c_str;
 }
+

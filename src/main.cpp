@@ -10,8 +10,10 @@
 #include "i/icase.h"
 #include "i/itester.h"
 #include "cases/testcase1.h"
-#include "testers/testoncachem.h"
 #include "testers/testfacebookcache.h"
+#include "testers/testoncachemlru.h"
+#include "testers/testoncachemmru.h"
+#include "testers/testoncachesmru.h"
 
 
 int main(int  argc,  char  **argv)  {
@@ -38,18 +40,23 @@ int main(int  argc,  char  **argv)  {
   cases_list.emplace_back(std::make_shared<TestCase1>());
 
   //  Testers:
+  std::shared_ptr<IAlgorithmTester> onCacheSMRU  =  std::make_shared<TestOnCacheSMRU>();
   std::deque<std::shared_ptr<IAlgorithmTester>>  algorithms_list;
-  //algorithms_list.emplace_back(std::make_shared<TestOnCacheM>());
-  algorithms_list.emplace_back(std::make_shared<TestFacebookCache>());
+  // SINGLE THREADED algorithms_list.emplace_back(std::make_shared<TestOnCacheSMRU>());
+  //algorithms_list.emplace_back(std::make_shared<TestFacebookCache>());
 
   //  Run tests:
   for (auto&& it_case :  cases_list) {
     ITestCase  *p_case  =  it_case.get();
     p_case->prepareTestCase(cur_config,  cur_system);
+    //Single threaded:
+    p_case->addAlgorithmTester_1thread(onCacheSMRU);
+    //Both, thread safe:
     for (auto&& it_algorithm :  algorithms_list) {
       p_case->addAlgorithmTester_1thread(it_algorithm);
       p_case->addAlgorithmTester_Nthread(it_algorithm);
     }
+    //Begin tests:
     p_case->start_1thread_tests();
     //p_case->start_Nthread_tests();
     p_case->stop();
