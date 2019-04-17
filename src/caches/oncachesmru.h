@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 #include <memory>
+#include <iostream>
 
 /*
  * Most used cache,  single threaded (thread UNsafe)
@@ -46,8 +47,6 @@ class  OnCacheSMRU  {
     uint32_t  used  =  0;  // is it useful? need it in cache?
     TONode  *fwdPtrH;  // hash jumps
     TONode  *fwdPtrsL[3]; // cmp jumps
-      //rating queue:
-   // TONode  *mostUseful;
 
     TKey  key  =  nullptr;
     std::shared_ptr<TData>  data;
@@ -56,16 +55,15 @@ class  OnCacheSMRU  {
     uint8_t  curHeight;  // ==SKIPHEIGHT-1 to CPU economy
 
     void  clear() {
-       //key  =  nullptr;
+       key  =  nullptr;
        fwdPtrH  =  nullptr;
        fwdPtrsL[0]  =  nullptr;
        fwdPtrsL[1]  =  nullptr;
        fwdPtrsL[2]  =  nullptr;
-       //hash  =  0;
-       //curHeight  =  0;
        used  =  0;
     }
   };  //  TONode
+
     /*
      * capacity - how many elements can store
      * uselessness - limit of uselessness - an element that does not collect even this is destroyed by old age
@@ -80,24 +78,16 @@ class  OnCacheSMRU  {
     clear();
   }
 
-  //const char * getData(TKey const  *key)  {
+
 std::shared_ptr<TData> getData(const TKey  &key)  {
-//    TONode  *curFound  =  find(key) ;
-//    if  (curFound)  {
-//      //toTopUsage(curFound);
-//      ++curFound->used_count;
-//      return curFound->data;
-//    }
-//    return nullptr;
-  const uint64_t  l_hash  =  get_hash(key); //key->hash();
-  //const uint32_t  basketID  =  l_hash % l_capacity;
+  const uint64_t  l_hash  =  get_hash(key);
   TONode  *cur  =  baskets[l_hash % l_capacity];
   if (cur)  {
     while (cur  &&  cur->hash != l_hash) {
       cur  =  cur->fwdPtrH;
     }
     if (cur)  {
-      int  cmp  =  compare(key,  cur->key); //key->cmp(cur->key);
+      int  cmp  =  compare(key,  cur->key);
       if (0  ==  cmp)  {
         ++cur->used;
         return cur->data;
@@ -109,7 +99,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
       int  h  =  2;
       while (h  >=  0)  {
         while (cur->fwdPtrsL[h])  {
-          cmp  =  compare(key,  cur->fwdPtrsL[h]->key); //key->cmp(cur->fwdPtrsL[h]->key);
+          cmp  =  compare(key,  cur->fwdPtrsL[h]->key);
           if (cmp  <  0)  {
             //found who bigger
             break;
@@ -126,9 +116,14 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
   return nullptr;
   }
 
-  //void  insertNode  (TKey const  *key,  const char  *data)  {
+
   void  insertNode  (const TKey  &key,  std::shared_ptr<TData>  &&data)  {
-    const uint64_t  hash  =  get_hash(key); //key->hash();
+//    if (key->keyArray[0]==139106
+//        || key->keyArray[0]==139326
+//        || key->keyArray[0]==142556) {
+//        std::cout<<"\n";
+//    }
+    const uint64_t  hash  =  get_hash(key);
     const uint32_t  basketID  =  hash % l_capacity;
     updatePathOutH  =  &(baskets[basketID]);
     int  cmp  =  (*updatePathOutH)? setll(hash,  key) : 5;
@@ -208,12 +203,11 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
     }  while (!re);
 
     if (re->key)  {
-//      if (re->key->keyArray[0]==86635) {
+//      if (re->key->keyArray[0]==30810) {
 //          std::cout<<"\n";
 //      }
       if (hash  ==  re->hash)  {
-        // Same  hash case
-        //if (re  ==  updatePathOutH->fwdPtrH)  {
+        // Same  hash case        
         if (re  ==  *updatePathOutH)  {
           //re is head of hash queue
           if (3 == cmp  ||  updatePathOutL[0]  ==  re)  {
@@ -228,8 +222,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
             re->key  =  cur->key;
             re->data  =  std::move(cur->data);
             for (int  h  =  0;  h  <=  2;  ++h)  {
-              if (h  <=  cur->curHeight) {
-                // catchNode(re, h, cur->fwdPtrsL[h]) ;
+              if (h  <=  cur->curHeight) {                
                 re->fwdPtrsL[h]  =  cur->fwdPtrsL[h];
                 cur->fwdPtrsL[h]  =  nullptr;
               }
@@ -237,23 +230,18 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
                 updatePathOutL[h]  =  re;
               }
             }
-            re  =  cur;
-            //memset(re,  0,  sizeof(TONode));
+            re  =  cur;            
             re->used  =  l_uselessness; // because we are here broke age
             //next do regular alhorithm..
           }
         }  else  {
-          // re not a head of the hash queue
-          //assert(updatePathOutH->fwdPtrH->hash == hash);
-          if (3  ==  cmp)  {
-            //delInSameHashCmp3(re, updatePathOutH->fwdPtrH);
+          // re not a head of the hash queue          
+          if (3  ==  cmp)  {            
             delInSameHashCmp3(re, *updatePathOutH);
           }  else  {
            // assert (4  !=  cmp);
             delInSameHash(re);
-          }
-          //l_f_delData(re->data);
-          //memset(re,  0,  sizeof(TONode));
+          }          
           re->clear();
         }
       }  else  {
@@ -261,9 +249,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         const uint32_t  re_basketID  =  re->hash % l_capacity;
         delWithOtherHash(re,
             (re->hash > hash  &&  re_basketID == basketID)  ?
-              updatePathOutH  :  &baskets[re_basketID]);
-        //l_f_delData(re->data);
-        //memset(re,  0,  sizeof(TONode));
+              updatePathOutH  :  &baskets[re_basketID]);        
         re->clear();
       } // else
 
@@ -281,20 +267,15 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
       re->key  =  key;
       re->data  =  std::move(data);
       re->curHeight  =  landscape_l[land_l_p++];
-      for (int  i  =  0; i  <=  re->curHeight;  ++i)  {
-        // catchNode(re, i, updatePathOutL[i]->fwdPtrsL[i]) ;
-        re->fwdPtrsL[i]  =  updatePathOutL[i]->fwdPtrsL[i];
-        // catchNode(updatePathOutL[i], i, re) ;
+      for (int  i  =  0; i  <=  re->curHeight;  ++i)  {        
+        re->fwdPtrsL[i]  =  updatePathOutL[i]->fwdPtrsL[i];        
         updatePathOutL[i]->fwdPtrsL[i]  =  re;
       }
       break;
     case 3:
-      //3 == replace head of hash queue, use updatePathOutH
-      //re->curHeight  =  landscape_l[land_l_p++];
-    {
-      //TONode  *prevHead  =  updatePathOutH->fwdPtrH;
-      TONode  *prevHead  =  *updatePathOutH;
-      //updatePathOutH->fwdPtrH  =  re;
+      //3 == replace head of hash queue, use updatePathOutH      
+    {      
+      TONode  *prevHead  =  *updatePathOutH;     
       *updatePathOutH  =  re;
       re->fwdPtrH  =  prevHead->fwdPtrH;
       prevHead->fwdPtrH  =  nullptr;
@@ -303,11 +284,9 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
       re->curHeight  =  2;
       prevHead->curHeight  =  landscape_l[land_l_p++];
       for (int  i  =  0; i  <=  2;  ++i)  {
-        if (prevHead->curHeight  >=  i)  {
-          // catchNode(re, i, prevHead) ;
+        if (prevHead->curHeight  >=  i)  {          
           re->fwdPtrsL[i]  =  prevHead;
-        }  else  {
-          // catchNode(re, i, prevHead->fwdPtrsL[i]) ;
+        }  else  {          
           re->fwdPtrsL[i]  =  prevHead->fwdPtrsL[i];
           prevHead->fwdPtrsL[i]  =  nullptr;
         }
@@ -319,8 +298,6 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
       re->key  =  key;
       re->data  =  std::move(data);
       re->curHeight  =  2;
-//      re->fwdPtrH  =  updatePathOutH->fwdPtrH;
-//      updatePathOutH->fwdPtrH  =  re;
       re->fwdPtrH  =  *updatePathOutH;
       *updatePathOutH  =  re;
       break;
@@ -337,44 +314,6 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
     return;
   }  //  allocNode
 
-
-//  TONode * find(TKey const  *key)  {
-//    const uint64_t hash  =  key->hash();
-//    const uint64_t basketID  =  hash % l_hash_baskets;
-//    TONode * cur  =  &(baskets[basketID]);
-//    while (cur->fwdPtrH  &&  cur->fwdPtrH->hash != hash) {
-//      cur  =  cur->fwdPtrH;
-//    }
-
-//    if (cur->fwdPtrH) {
-//      cur  =  cur->fwdPtrH;
-//      int  cmp  =  key->cmp(cur->key);
-//      if (0  ==  cmp)  {
-//        return cur;
-//      }
-//      if (cmp  <  0)  {
-//        //head is bigger, nothing to search
-//        return nullptr;
-//      }
-//      int  h  =  2;
-//      while (h  >=  0)  {
-//        while (cur->fwdPtrsL[h])  {
-//          cmp  =  key->cmp(cur->fwdPtrsL[h]->key);
-//          if (cmp  <  0)  {
-//            //found who bigger
-//            break;
-//          }  else  if (0  ==  cmp)  {
-//            return cur->fwdPtrsL[h];  // found
-//          }
-//          cur  =  cur->fwdPtrsL[h];  //step on it
-//        }
-//        --h;
-//      }
-//    }
-//    return nullptr;
-//  }  //  find
-
-
     /*
      * return:
      * 0 == node with equal key found, use only updatePathOut[0]
@@ -383,8 +322,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
      * 1 == not found who bigger with the same hash, use updatePathOut
      * -1 == found who bigger at the queue end, use updatePathOut
    */
-    int  setll(uint64_t  hash,  const TKey  &key)  {
-        //TKey const  *key,  const uint64_t basketID)  {
+    int  setll(uint64_t  hash,  const TKey  &key)  {        
       int cmp;
       TONode  *cur  =  *updatePathOutH;
       if (cur->hash  ==  hash)  {
@@ -392,49 +330,34 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         if (0  ==  cmp)  {  return  0;  }
         if (cmp  <  0) {  return  3;  }
       }  else  {
-        while (cur->fwdPtrH  &&  hash > cur->fwdPtrH->hash)  {
-          cur  =  cur->fwdPtrH;  //step on it
-          updatePathOutH  =  &cur;
-        }
-        if (cur->fwdPtrH  &&  cur->fwdPtrH->hash  ==  hash) {
-          cur  =  cur->fwdPtrH;  //step on it
-          cmp  =  compare(key,  cur->key) ;//key->cmp(cur->key);
-          if (cmp  <  0)  {
-            //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2] =  cur;
+        while (*updatePathOutH   &&  hash > (*updatePathOutH)->hash) {
+          updatePathOutH = &((*updatePathOutH)->fwdPtrH);
+        }        
+        if (*updatePathOutH  &&  (*updatePathOutH)->hash  ==  hash) {
+          cmp  =  compare(key,  (*updatePathOutH)->key) ;
+          if (cmp  <  0)  {            
             return 3; //must replace hash head in place
           }
-          if (0  ==  cmp) {
-            updatePathOutH  =  &cur;
+          if (0  ==  cmp) {            
             return  0;
-          }
+          }          
+          cur  =  *updatePathOutH;  //step on it
         }  else  {
           cur  =  nullptr;
         }
       }
 
-      if (cur) {
-        // same key jumps
-        //cur  =  cur->fwdPtrH;  //step on it
-//        int  cmp  =  compare(key,  cur->key) ;//key->cmp(cur->key);
-//        if (cmp  <  0)  {
-//          //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2] =  cur;
-//          return 3; //must replace hash head in place
-//        }
-//        if (0  ==  cmp) {
-//          updatePathOutH  =  cur;
-//          return  0;
-//        }
+      if (cur)  {
+        // same key jumps       
         int  h  =  2;
         while (h  >=  0)  {
           updatePathOutL[h]  =  cur;
-          while (cur->fwdPtrsL[h])  {
-            //assert (hash  ==  cur->fwdPtrsL[h]->hash);
+          while (cur->fwdPtrsL[h])  {            
             cmp  =  compare(key,  cur->fwdPtrsL[h]->key) ; //key->cmp(cur->fwdPtrsL[h]->key);
             if (cmp  <  0)  {
               //found who bigger
               break;
-            }  else  if (0  ==  cmp)  {
-              //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2]  =  cur->fwdPtrsL[h];
+            }  else  if (0  ==  cmp)  {              
               updatePathOutH  =  &(cur->fwdPtrsL[h]);
               return 0;  // must replace at place
             }
@@ -445,68 +368,52 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         }
         return (cmp < 0) ? -1 : 1;
       }  else  {
-        // here no a same hash
-        //updatePathOutL[0] = updatePathOutL[1] = updatePathOutL[2] = nullptr;
+        // here no a same hash        
         return 4;
       }
       return 8;
-    }
+    }  //  setll
 
 
     void delWithOtherHash(TONode  *nodeToDel,  TONode  **startSearch)  {
       //1. must find same hash:
       const uint64_t  hash  =  nodeToDel->hash;
-//      TONode  *cur  =  *startSearch;
-//      while (cur->fwdPtrH  &&  cur->fwdPtrH->hash != hash) {
-//        cur  =  cur->fwdPtrH;
-//      }
+
       while (*startSearch  &&  (*startSearch)->hash != hash) {
         startSearch = &((*startSearch)->fwdPtrH);
       }
 
       //2. if nodeToDel is head of hash queue:
-      //if  (nodeToDel  ==  cur->fwdPtrH)  {
       if  (nodeToDel  ==  *startSearch)  {
-        //This is the head of hash queue:
-        //cur->fwdPtrH = nodeToDel->fwdPtrsL[0]; // new hash head
-        *startSearch = nodeToDel->fwdPtrsL[0];
-        //if (cur->fwdPtrH)  {
-        if (*startSearch)  {
-          //cur  =  cur->fwdPtrH;  // aka tmp for work
-          TONode  *cur  =  *startSearch;
+        //This is the head of hash queue:        
+        *startSearch = nodeToDel->fwdPtrsL[0];        
+        if (*startSearch)  {          
+          TONode  *cur  =  *startSearch;  // aka tmp for work
           //  passing pointers to a new head:
-          cur->fwdPtrH  =  nodeToDel->fwdPtrH;
-          //assert (2 == nodeToDel->curHeight);
-          for (int  h  =  2;  h  >  cur->curHeight;  --h)  {
-            // catchNode(cur, h, nodeToDel->fwdPtrsL[h]) ;
+          cur->fwdPtrH  =  nodeToDel->fwdPtrH;          
+          for (int  h  =  2;  h  >  cur->curHeight;  --h)  {            
             cur->fwdPtrsL[h]  =  nodeToDel->fwdPtrsL[h];  // new head see what nodeToDel see now
           }
           cur->curHeight  =  2;
         }  else  {
-          //nodeToDel was last with same hash
-          //cur->fwdPtrH  =  nodeToDel->fwdPtrH;
+          //nodeToDel was last with same hash          
           *startSearch  =  nodeToDel->fwdPtrH;
-          if (nodeToDel  ==  *updatePathOutH)  {
-            //updatePathOutH  =  cur;
+          if (&(nodeToDel->fwdPtrH)  ==  updatePathOutH)  {
             updatePathOutH  =  startSearch;
           }
         }
       }  else  {
-        //3. regular del:
-        //delInSameHashCmp3(nodeToDel,  cur->fwdPtrH) ;
+        //3. regular del:        
         delInSameHashCmp3(nodeToDel,  *startSearch) ;
       }
-
       return;
-    }
+    }  //  delWithOtherHash
 
     void delInSameHashPathOut(TONode  *nodeToDel,  int  top_h)  {
         //Node to del in updatePathOut[h], need path to it for update
-      //new path may be not the same
-      //const uint64_t  hash  =  nodeToDel->hash;
+      //new path may be not the same      
       TONode  *updatePath[3];
-      int  h  =  2;
-      //TONode  *cur  =  updatePathOutH->fwdPtrH;
+      int  h  =  2;      
       TONode  *cur  =  *updatePathOutH;
       if  (nodeToDel->curHeight  >  top_h)  {
         top_h  =  nodeToDel->curHeight;
@@ -520,9 +427,6 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
       while (h  >=  0)  {
         updatePath[h]  =  cur;
         while (nodeToDel != cur->fwdPtrsL[h]  &&  cur->fwdPtrsL[h])  {
-          //int  cmp  =  nodeToDel->key->cmp(cur->fwdPtrsL[h]->key);
-          //assert (nodeToDel->hash  ==  cur->fwdPtrsL[h]->hash);
-          //if (nodeToDel->key->cmp(cur->fwdPtrsL[h]->key)  <=  0)  {
           if (compare(nodeToDel->key,  cur->fwdPtrsL[h]->key) <=  0)  {
             //found who bigger or target, go level down
             break;
@@ -537,8 +441,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         --h;
       }
 
-      for (h  =  top_h;  h  >=  0;  --h)  {
-        // catchNode(updatePath[h], h, nodeToDel->fwdPtrsL[h]) ;
+      for (h  =  top_h;  h  >=  0;  --h)  {        
         updatePath[h]->fwdPtrsL[h]  =  nodeToDel->fwdPtrsL[h];
         //replace deleted node :
         if (nodeToDel  ==  updatePathOutL[h])  {
@@ -546,7 +449,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         }
       }
       return;
-    }//delInSameBasketPathOut
+    }  //  delInSameBasketPathOut
 
     void delInSameHashSuperFast(TONode  *nodeToDel,  int  top_h)  {
         //need path before to update pointers
@@ -560,9 +463,6 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
       while (h  >=  0)  {
         updatePath[h]  =  cur;
         while (nodeToDel != cur->fwdPtrsL[h]  &&  cur->fwdPtrsL[h])  {
-          //int  cmp  =  nodeToDel->key->cmp(cur->fwdPtrsL[h]->key);
-          //assert (nodeToDel->hash  ==  cur->fwdPtrsL[h]->hash);
-          //if (nodeToDel->key->cmp(cur->fwdPtrsL[h]->key)  <=  0)  {
           if (compare(nodeToDel->key,  cur->fwdPtrsL[h]->key)  <=  0)  {
             //found who bigger or target, go level down
             break;
@@ -577,8 +477,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         --h;
       }
 
-      for (h  =  top_h;  h  >=  0;  --h)  {
-        // catchNode(updatePath[h], h, nodeToDel->fwdPtrsL[h]);
+      for (h  =  top_h;  h  >=  0;  --h)  {        
         updatePath[h]->fwdPtrsL[h]  =  nodeToDel->fwdPtrsL[h];
       }
       return;
@@ -588,14 +487,10 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
     void  delInSameHashCmp3(TONode  *nodeToDel, TONode  *hashHead)  {
       int  h  =  2;
       TONode * updatePath[3];
-      TONode  *cur  =  hashHead;  //updatePathOutH->fwdPtrH;
-      //int  cmp  =  1;
+      TONode  *cur  =  hashHead;  //updatePathOutH->fwdPtrH;      
       while (h  >=  0)  {
         updatePath[h]  =  cur;
-        while (nodeToDel != cur->fwdPtrsL[h]  &&  cur->fwdPtrsL[h])  {
-          //cmp  =  nodeToDel->key->cmp(cur->fwdPtrsL[h]->key);
-          //assert (nodeToDel->hash  ==  cur->fwdPtrsL[h]->hash);
-          //if (nodeToDel->key->cmp(cur->fwdPtrsL[h]->key)  <=  0)  {
+        while (nodeToDel != cur->fwdPtrsL[h]  &&  cur->fwdPtrsL[h])  {          
           if (compare(nodeToDel->key,  cur->fwdPtrsL[h]->key)  <=  0)  {
             //found who bigger or target, go level down
             break;
@@ -610,8 +505,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
         --h;
       }
 
-      for (h  =  nodeToDel->curHeight;  h  >=  0;  --h)  {
-        // catchNode(updatePath[h], h, nodeToDel->fwdPtrsL[h]);
+      for (h  =  nodeToDel->curHeight;  h  >=  0;  --h)  {        
         updatePath[h]->fwdPtrsL[h]  =  nodeToDel->fwdPtrsL[h];
       }
       return;
@@ -641,8 +535,7 @@ std::shared_ptr<TData> getData(const TKey  &key)  {
           return;
         }
       }
-      //not on path == path not affected
-      //delInSameHashCmp3(nodeToDel, updatePathOutH->fwdPtrH) ;
+      //not on path == path not affected      
       delInSameHashCmp3(nodeToDel,  *updatePathOutH) ;
     } // delInSameHash
 

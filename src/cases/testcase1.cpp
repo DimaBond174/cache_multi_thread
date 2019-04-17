@@ -102,10 +102,9 @@ void  TestCase1::start_1thread_tests()  {
             .append(".csv");
   l_cur_system.get()->mkdirs_for_file(str.c_str());
   std::ofstream  csvfile (str);
-  int64_t  startSize  = 100;//l_cfg.get()->getLongValue("START_LOGPOINT");
-  int64_t  testSize  = 1000;//l_cfg.get()->getLongValue("TEST_MAXSIZE");
-  //int64_t  capacity  =  USHRT_MAX + 1;
-  //l_cfg.get()->setValue("capacity",  std::to_string(capacity));
+  int64_t  startSize  =  l_cfg.get()->getLongValue("START_LOGPOINT");
+  int64_t  testSize  =  l_cfg.get()->getLongValue("TEST_MAXSIZE");
+
   make_header(startSize,  testSize,  &str);
   csvfile.write (str.c_str(), str.length());
   std::string  strFind;
@@ -190,8 +189,8 @@ void  TestCase1::start_Nthread_tests()  {
             .append(".csv");
   l_cur_system.get()->mkdirs_for_file(str.c_str());
   std::ofstream  csvfile (str);
-  int64_t  startSize  = 100;//l_cfg.get()->getLongValue("START_LOGPOINT");
-  int64_t  testSize  = 1000;//l_cfg.get()->getLongValue("TEST_MAXSIZE");
+  int64_t  startSize  =  l_cfg.get()->getLongValue("START_LOGPOINT");
+  int64_t  testSize  =  l_cfg.get()->getLongValue("TEST_MAXSIZE");
   int64_t  cnt_insert_threads  = 2;//l_cfg.get()->getLongValue("The number of threads to insert");
   int64_t  cnt_find_threads  = 2;//l_cfg.get()->getLongValue("The number of threads to find");
   std::cout << "Multi threaded test:"

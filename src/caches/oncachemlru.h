@@ -58,7 +58,7 @@ class  OnCacheMLRU  {
     std::atomic_flag in_use  =  ATOMIC_FLAG_INIT;
 
     void  clear() {
-       //key  =  nullptr;
+       key  =  nullptr;
        fwdPtrH  =  nullptr;
        fwdPtrsL[0]  =  nullptr;
        fwdPtrsL[1]  =  nullptr;
@@ -202,7 +202,8 @@ class  OnCacheMLRU  {
       //uint32_t  id  =  node3_pool_id.fetch_add(1);
       uint32_t  id  =  node3_pool_id.fetch_add(1,  std::memory_order_relaxed);
       if  (id >= l_capacity )  {
-        node3_pool_id.store(0, std::memory_order_release);
+        //node3_pool_id.store(0, std::memory_order_release);
+        node3_pool_id.store(0, std::memory_order_relaxed);
         id  =  0; // data races will prevent through in_use.test_and_set
       }
       re  =  &node3_pool[id];

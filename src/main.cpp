@@ -43,14 +43,16 @@ int main(int  argc,  char  **argv)  {
   std::shared_ptr<IAlgorithmTester> onCacheSMRU  =  std::make_shared<TestOnCacheSMRU>();
   std::deque<std::shared_ptr<IAlgorithmTester>>  algorithms_list;
   // SINGLE THREADED algorithms_list.emplace_back(std::make_shared<TestOnCacheSMRU>());
-  //algorithms_list.emplace_back(std::make_shared<TestFacebookCache>());
+  algorithms_list.emplace_back(std::make_shared<TestFacebookCache>());
+  algorithms_list.emplace_back(std::make_shared<TestOnCacheMMRU>());
+  algorithms_list.emplace_back(std::make_shared<TestOnCacheMLRU>());
 
   //  Run tests:
   for (auto&& it_case :  cases_list) {
     ITestCase  *p_case  =  it_case.get();
     p_case->prepareTestCase(cur_config,  cur_system);
     //Single threaded:
-    p_case->addAlgorithmTester_1thread(onCacheSMRU);
+    //p_case->addAlgorithmTester_1thread(onCacheSMRU);
     //Both, thread safe:
     for (auto&& it_algorithm :  algorithms_list) {
       p_case->addAlgorithmTester_1thread(it_algorithm);
@@ -58,7 +60,7 @@ int main(int  argc,  char  **argv)  {
     }
     //Begin tests:
     p_case->start_1thread_tests();
-    //p_case->start_Nthread_tests();
+    p_case->start_Nthread_tests();
     p_case->stop();
   }
 
