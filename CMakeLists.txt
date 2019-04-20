@@ -12,7 +12,8 @@ set(CUR_EXEC_NAME "test_cache_multi_thread")
 set(CUR_EXEC_FOLDER "../test_cache_multi_thread")
 
 # TODO Enshure target build is what you want:
-set(CMAKE_BUILD_TYPE "Debug")
+# set(CMAKE_BUILD_TYPE "Debug") for release just comment:
+#set(CMAKE_BUILD_TYPE "Debug")
 
 include(cmake/options.cmake)
 include(cmake/functions.cmake)

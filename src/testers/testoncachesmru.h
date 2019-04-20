@@ -10,7 +10,7 @@
 #define TESTONCACHESMRU_H
 #include  "i/itester.h"
 #include  "caches/oncachesmru.h"
-
+#include "i/ikey.h"
 
 class TestOnCacheSMRU : public IAlgorithmTester {
  public:
@@ -18,8 +18,8 @@ class TestOnCacheSMRU : public IAlgorithmTester {
   ~TestOnCacheSMRU() override;
   void  onStart(std::shared_ptr<IConfig>  &cfg)  override;
   void  onStop()  override;
-  void  insert(Elem  *elem)  override;
-  bool  exist(Elem  *elem)  override;
+  void  insert(void  *elem)  override;
+  bool  exist(void  *elem)  override;
   const char *  get_algorithm_name()  override;
  private:
   OnCacheSMRU<TKey *, Elem *>  *cache  =  nullptr;

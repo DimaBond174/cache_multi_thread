@@ -37,21 +37,20 @@ void  TestOnCacheSMRU::onStop()  {
   return;
 }
 
-void  TestOnCacheSMRU::insert(Elem  *elem)  {
-  cache->insertNode(&(elem->key),
-                    std::make_shared<Elem *>(elem));
+void  TestOnCacheSMRU::insert(void  *elem)  {
+  Elem  *e  =  static_cast<Elem *>(elem);
+  cache->insertNode(&(e->key),
+                    std::make_shared<Elem *>(e));
   return;
 }
 
-bool  TestOnCacheSMRU::exist(Elem  *elem)  {
+bool  TestOnCacheSMRU::exist(void  *elem)  {
   bool  re  =  false;
-  std::shared_ptr<Elem *> p_elem  =  cache->getData(&elem->key);
-  if (p_elem  &&  *p_elem.get() == elem) {
+  Elem  *e  =  static_cast<Elem *>(elem);
+  std::shared_ptr<Elem *> p_elem  =  cache->getData(&e->key);
+  if (p_elem  &&  *p_elem.get() == e) {
      re  =  true;
   }
-//  if  (cache->getData(&(elem->key))  ==  elem->data.c_str())  {
-//    re  =  true;
-//  }
   return  re;
 }
 

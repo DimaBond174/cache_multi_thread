@@ -40,7 +40,7 @@ void  TestCase1::prepareTestCase(std::shared_ptr<IConfig>  &cfg, std::shared_ptr
 
 void  TestCase1::loadCaseFromFile()  {
   const std::string  &testCase  =  l_cur_system.get()->
-      load_text_file(l_cfg.get()->getStringValue("FileWithTestData").c_str());
+      load_text_file(l_cfg.get()->getStringValue("TestCase1").c_str());
   const char  *begin  =  testCase.c_str();
   const char  *end  =  begin  +  testCase.length();
   uint32_t  i  =  0;
@@ -65,7 +65,7 @@ void  TestCase1::generateCase()  {
     test_data.emplace(std::make_pair(e->key,  e));
   }
 
-  l_cur_system.get()->save_text_file(l_cfg.get()->getStringValue("FileWithTestData").c_str(),
+  l_cur_system.get()->save_text_file(l_cfg.get()->getStringValue("TestCase1").c_str(),
       testCase.c_str(),  testCase.length() );
 
   std::cout << "Test data has random generated, items count = "
@@ -97,7 +97,7 @@ void  TestCase1::start_1thread_tests()  {
   auto  start  =  std::chrono::system_clock::now();
   int64_t  s  =  std::chrono::duration_cast<std::chrono::seconds>(
       start.time_since_epoch()).count();
-  str.append("/compare.1thread.")
+  str.append("/compare.TestCase1.1thread.")
             .append(std::to_string(s))
             .append(".csv");
   l_cur_system.get()->mkdirs_for_file(str.c_str());
@@ -117,6 +117,9 @@ void  TestCase1::start_1thread_tests()  {
     strFind.clear();
     strFind.append(p_tester->get_algorithm_name())
               .append(".1thread.find (micros)");
+    std::cout << "\n@@@@@@@@@@@@@@@@@@@@@\n"
+                <<  "Algorithm_name : "  <<  p_tester->get_algorithm_name()
+                << "\n@@@@@@@@@@@@@@@@@@@@@\n";
     int64_t  curSize  =  startSize;
     int64_t  capacity  =  curSize / 10;
     while (curSize  <=  testSize)  {
@@ -184,15 +187,15 @@ void  TestCase1::start_Nthread_tests()  {
   auto  start  =  std::chrono::system_clock::now();
   int64_t  s  =  std::chrono::duration_cast<std::chrono::seconds>(
       start.time_since_epoch()).count();
-  str.append("/compare.Nthread.")
+  str.append("/compare.TestCase1.Nthread.")
             .append(std::to_string(s))
             .append(".csv");
   l_cur_system.get()->mkdirs_for_file(str.c_str());
   std::ofstream  csvfile (str);
   int64_t  startSize  =  l_cfg.get()->getLongValue("START_LOGPOINT");
   int64_t  testSize  =  l_cfg.get()->getLongValue("TEST_MAXSIZE");
-  int64_t  cnt_insert_threads  = 2;//l_cfg.get()->getLongValue("The number of threads to insert");
-  int64_t  cnt_find_threads  = 2;//l_cfg.get()->getLongValue("The number of threads to find");
+  int64_t  cnt_insert_threads  =  l_cfg.get()->getLongValue("The number of threads to insert");
+  int64_t  cnt_find_threads  =  l_cfg.get()->getLongValue("The number of threads to find");
   std::cout << "Multi threaded test:"
     <<"\nThe number of threads to insert = "  <<  cnt_insert_threads
     <<"\nThe number of threads to find = "  <<  cnt_find_threads  <<'\n';
@@ -206,6 +209,10 @@ void  TestCase1::start_Nthread_tests()  {
     str.clear();
     str.append(p_tester->get_algorithm_name())
               .append(".Nthread.insert&find (micros)");
+
+    std::cout << "\n@@@@@@@@@@@@@@@@@@@@@\n"
+                <<  "Algorithm_name : "  <<  p_tester->get_algorithm_name()
+                << "\n@@@@@@@@@@@@@@@@@@@@@\n";
 
     int64_t  curSize  =  startSize;
     int64_t  capacity  =  curSize / 10;
@@ -222,7 +229,7 @@ void  TestCase1::start_Nthread_tests()  {
         Elem  *ptr  =  it.second;
         p_tester->insert(ptr) ;
         ++i;
-        if  (i  >=  curSize)  {
+        if  (i  >=  capacity)  {
           break;
         }
       }  //  for
@@ -301,7 +308,7 @@ void  TestCase1::start_Nthread_tests()  {
 }  // start_Nthread_tests
 
 
-FindResults  TestCase1::find_in_thread(int  count,
+TestCase1::FindResults  TestCase1::find_in_thread(int  count,
     IAlgorithmTester  *p_tester)  {
   FindResults  re;
   re.thread_id  =  spec::to_int64t(std::this_thread::get_id());

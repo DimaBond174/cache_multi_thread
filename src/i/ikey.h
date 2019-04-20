@@ -44,8 +44,8 @@ union AnySizeKey {
 
 
 class TKey  {
- public:
-  TKey(uint64_t  p0,  uint64_t  p1,  uint64_t  p2)  {
+ public:  
+  TKey(uint64_t  p0  =  0,  uint64_t  p1  =  0,  uint64_t  p2  =  0)  {
     keyArray[0]  =  p0;
     keyArray[1]  =  p1;
     keyArray[2]  =  p2;
@@ -131,13 +131,21 @@ class TKey  {
   };
 
   struct  Elem  {
+    Elem() {}
     Elem(uint64_t  p0,  uint64_t  p1,  uint64_t  p2,  std::string  &&_data)
           : key(p0,  p1,  p2),  data(std::move(_data)) { }
     Elem(const Elem  &other)  :  data(other.data),  key(other.key)  {  }
     Elem(const Elem  *other)  :  data(other->data),  key(other->key)  {  }
+    Elem & operator=(const  Elem &rhv)  {
+      if (&rhv  !=  this) {
+        data  =  rhv.data;
+        key  =  rhv.key;
+      }
+      return *this;
+    }
 
     TKey key;
-    const  std::string  data;
+    std::string  data;
   };
 
   inline int compare (const TKey  *lhv,  const TKey  *rhv) {

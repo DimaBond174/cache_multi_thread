@@ -274,11 +274,16 @@ class  OnCacheMLRU  {
       if (updatePathOutH) {
         if (updatePathOutH->hash  ==  new_node->hash) {
            setOnBasketHead(new_node,  updatePathOutH,  basketID);
-        } else {
+        }  else if (updatePathOutH->hash  >  new_node->hash)  {
+           baskets[basketID]  =  new_node;
+           new_node->fwdPtrH  =  updatePathOutH;
+           new_node->curHeight  =  2;
+        }  else  {
            setOther(new_node,  updatePathOutH);
         }
       } else {
         baskets[basketID]  =  new_node;
+        new_node->curHeight  =  2;
       }
       return;
   }  //  insertN
@@ -361,8 +366,8 @@ class  OnCacheMLRU  {
 
       if (cur->fwdPtrH  &&  cur->fwdPtrH->hash  ==  hash) {
         // same key jumps
-        cur  =  cur->fwdPtrH;  //step on it
-        int  cmp  =  compare(p_key,  cur->key); //key->cmp(cur->key);
+        //cur  =  cur->fwdPtrH;  //step on it
+        int  cmp  =  compare(p_key,  cur->fwdPtrH->key);  //key->cmp(cur->key);
         if (cmp  <  0)  {
           //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2] =  cur;
           //3 == replace head of hash queue, use updatePathOutH
@@ -385,6 +390,7 @@ class  OnCacheMLRU  {
           }
           return;// 3; //must replace hash head in place
         }
+        cur  =  cur->fwdPtrH;  //step on it
         if (0  ==  cmp) {
           //updatePathOutL[0]  =  cur;
           //l_f_delData(cur->data);
@@ -404,13 +410,10 @@ class  OnCacheMLRU  {
             if (cmp  <  0)  {
               //found who bigger
               break;
-            }  else  if (0  ==  cmp)  {
-              //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2]  =  cur->fwdPtrsL[h];
-              //updatePathOutL[0]  =  cur->fwdPtrsL[h];
-              //l_f_delData(cur->data);
+            }  else  if (0  ==  cmp)  {              
+              cur  =  cur->fwdPtrsL[h];
               cur->data  =  std::move(new_node->data);
-              cur->key  =  new_node->key;
-              //memset(new_node,  0,  sizeof(TONode3));
+              cur->key  =  new_node->key;              
               new_node->clear();
               return;// 0;  // must replace at place
             }

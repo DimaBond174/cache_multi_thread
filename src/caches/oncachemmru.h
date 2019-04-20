@@ -128,12 +128,18 @@ class  OnCacheMMRU  {
   }
 
   void  insertNode  (const TKey  &key,  std::shared_ptr<TData>  &&data)  {    
+//    if (7953758402820723744  ==  key->key.keyArray[0]) {
+//      assert(7953758402820723744  ==  key->key.keyArray[0]);
+//    }
     const uint64_t  l_hash  =  get_hash(key); //key->hash();
     const uint32_t  basketID  =  l_hash % l_capacity;
     TONode  *new_node  =  allocNode();
     new_node->hash  =  l_hash;
     new_node->key  =  key;
     new_node->data  =  std::move(data);
+//    if (5990907401477938266  ==  l_hash) {
+//      assert( 5990907401477938266  ==  l_hash);
+//    }
     insertN(new_node,  basketID);
     new_node->in_use.clear(std::memory_order_release);
   }  //  insertNode
@@ -220,6 +226,9 @@ class  OnCacheMMRU  {
     } while (re->in_use.test_and_set(std::memory_order_acq_rel));    
 
     if (re->key) {
+//      if (5990907401477938266  ==  re->hash) {
+//        assert( 5990907401477938266  ==  re->hash);
+//      }
       //in case of data races here will be serialization:
       {        
         uint32_t basketID  =  re->hash % l_capacity;
@@ -283,11 +292,16 @@ class  OnCacheMMRU  {
       if (updatePathOutH) {
         if (updatePathOutH->hash  ==  new_node->hash) {
            setOnBasketHead(new_node,  updatePathOutH,  basketID);
-        } else {
+        }  else if (updatePathOutH->hash  >  new_node->hash)  {
+           baskets[basketID]  =  new_node;
+           new_node->fwdPtrH  =  updatePathOutH;
+           new_node->curHeight  =  2;
+        }  else  {
            setOther(new_node,  updatePathOutH);
         }
       } else {
         baskets[basketID]  =  new_node;
+        new_node->curHeight  =  2;
       }
       return;
   }  //  insertN
@@ -337,8 +351,7 @@ class  OnCacheMMRU  {
         }  else  if (0  ==  cmp)  {
           //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2]  =  cur->fwdPtrsL[h];
           //updatePathOutL[0]  =  cur->fwdPtrsL[h];
-          cur  =  cur->fwdPtrsL[h];
-          //l_f_delData(cur->data);
+          cur  =  cur->fwdPtrsL[h];          
           cur->data  =  std::move(new_node->data);
           cur->key  =  new_node->key;
           //memset(new_node,  0,  sizeof(TONode));
@@ -370,8 +383,8 @@ class  OnCacheMMRU  {
 
       if (cur->fwdPtrH  &&  cur->fwdPtrH->hash  ==  hash) {
         // same key jumps
-        cur  =  cur->fwdPtrH;  //step on it
-        int  cmp  =  compare(p_key,  cur->key); //key->cmp(cur->key);
+        //cur  =  cur->fwdPtrH;  //step on it
+        int  cmp  =  compare(p_key,  cur->fwdPtrH->key); //key->cmp(cur->key);
         if (cmp  <  0)  {
           //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2] =  cur;
           //3 == replace head of hash queue, use updatePathOutH
@@ -394,6 +407,7 @@ class  OnCacheMMRU  {
           }
           return;// 3; //must replace hash head in place
         }
+        cur  =  cur->fwdPtrH;  //step on it
         if (0  ==  cmp) {
           //updatePathOutL[0]  =  cur;
           //l_f_delData(cur->data);
@@ -414,12 +428,9 @@ class  OnCacheMMRU  {
               //found who bigger
               break;
             }  else  if (0  ==  cmp)  {
-              //updatePathOutL[0]  =  updatePathOutL[1] =  updatePathOutL[2]  =  cur->fwdPtrsL[h];
-              //updatePathOutL[0]  =  cur->fwdPtrsL[h];
-              //l_f_delData(cur->data);
+              cur  =  cur->fwdPtrsL[h];
               cur->data  =  std::move(new_node->data);
               cur->key  =  new_node->key;
-              //memset(new_node,  0,  sizeof(TONode));
               new_node->clear();
               return;// 0;  // must replace at place
             }

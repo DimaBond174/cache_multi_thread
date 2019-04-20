@@ -10,28 +10,17 @@
 #define TESTCASE1_H
 
 #include "i/icase.h"
+#include "i/ikey.h"
 #include <deque>
 #include <map>
 #include <chrono>
 #include <future>
 
+/*
+*  Test case to insert/find intems with key(int64[3])
+*/
+
 using TimePoint  =  std::chrono::time_point<std::chrono::system_clock>;
-
-class FindResults {
- public:
-  int64_t  thread_id;
-  int64_t  found;
-  int64_t  not_found;
-  TimePoint  start;
-  TimePoint  stop;
-};
-
-class InsertResults {
- public:
-  int64_t  thread_id;
-  TimePoint  start;
-  TimePoint  stop;
-};
 
 class TestCase1  :  public ITestCase {
  public:
@@ -53,6 +42,22 @@ class TestCase1  :  public ITestCase {
   void  generateCase();
   void  make_header(int64_t  startSize,  int64_t  testSize,  std::string  *str);
  private:
+  class FindResults {
+   public:
+    int64_t  thread_id;
+    int64_t  found;
+    int64_t  not_found;
+    TimePoint  start;
+    TimePoint  stop;
+  };
+
+  class InsertResults {
+   public:
+    int64_t  thread_id;
+    TimePoint  start;
+    TimePoint  stop;
+  };
+
     FindResults  find_in_thread(int  count,  IAlgorithmTester  *p_tester);
     void  insert_in_thread(int  count,  std::promise<InsertResults>  prom,
       IAlgorithmTester  *p_tester);

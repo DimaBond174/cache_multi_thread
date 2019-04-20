@@ -28,23 +28,19 @@ void  TestFacebookCache::onStop()  {
   return;
 }
 
-void  TestFacebookCache::insert(Elem  *elem)  {
-//  cache->insertNode(&(elem->key),
-//                    std::make_shared<Elem *>(elem));
-  cache->insert(&elem->key, elem);
+void  TestFacebookCache::insert(void  *elem)  {
+  Elem  *e  =  static_cast<Elem *>(elem);
+  cache->insert(&e->key, e);
   return;
 }
 
-bool  TestFacebookCache::exist(Elem  *elem)  {
+bool  TestFacebookCache::exist(void  *elem)  {
   bool  re  =  false;
-//  std::shared_ptr<Elem *> p_elem  =  cache->getData(&elem->key);
-//  if (p_elem  &&  *p_elem.get() == elem) {
-//     re  =  true;
-//  }
+  Elem  *e  =  static_cast<Elem *>(elem);
   HPHP::ConcurrentLRUCache<TKey *, Elem *, TKey_hash_compare>::ConstAccessor  pipec;
-  if  (cache->find(pipec, &elem->key)) {
+  if  (cache->find(pipec, &e->key)) {
     Elem  *f  =  *pipec.get();
-      if (f == elem) {
+      if (f == e) {
          re  =  true;
       }
   }

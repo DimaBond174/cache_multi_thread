@@ -11,6 +11,7 @@
 
 #include  "i/itester.h"
 #include  "caches/oncachemlru.h"
+#include "i/ikey.h"
 
 class TestOnCacheMLRU : public IAlgorithmTester {
  public:
@@ -18,8 +19,8 @@ class TestOnCacheMLRU : public IAlgorithmTester {
   ~TestOnCacheMLRU() override;
   void  onStart(std::shared_ptr<IConfig>  &cfg)  override;
   void  onStop()  override;
-  void  insert(Elem  *elem)  override;
-  bool  exist(Elem  *elem)  override;
+  void  insert(void  *elem)  override;
+  bool  exist(void  *elem)  override;
   const char *  get_algorithm_name()  override;
  private:
   OnCacheMLRU<TKey *, Elem *>  *cache  =  nullptr;
