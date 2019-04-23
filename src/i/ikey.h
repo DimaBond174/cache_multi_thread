@@ -70,14 +70,14 @@ class TKey  {
             && keyArray[2]  ==  rhl.keyArray[2];
   }
 
-  static bool  do_worst_case;
+//  static bool  do_worst_case;
   static constexpr int  keyLongSize  =  3;
   uint64_t  keyArray[keyLongSize];
   uint64_t  hash() const  {
     const uint64_t re  =  keyArray[0]  +  keyArray[1]  +  keyArray[2];
-    if  (do_worst_case)  {
-      return  (re % 1000);
-    }
+//    if  (do_worst_case)  {
+//      return  (re % 1000);
+//    }
     return  (re < 9223372036854775807ll)?  re  :  (re >> 1);
   }
 
