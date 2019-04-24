@@ -12,8 +12,7 @@ You are in the test bench repository where the fastest algorithms for multithrea
 ![TestCase1.1thread](https://github.com/DimaBond174/cache_multi_thread/wiki/TestCase1.1thread.png)
 
 
-#### Step-by-step instructions on how to run a test using source code / ready-made compiled programs,
- bench description, description of caching algorithms [here: WiKi](https://github.com/DimaBond174/cache_multi_thread/wiki)
+#### Step-by-step instructions on how to run a test using source code / ready-made compiled programs, bench description, description of caching algorithms [here: WiKi](https://github.com/DimaBond174/cache_multi_thread/wiki)
 
 ---
 
@@ -97,6 +96,8 @@ How to call methods and work in parallel threads:
 
 
 Graphs of the results of multi-threaded testing cite [here at the end of the WiKi page](https://github.com/DimaBond174/cache_multi_thread/wiki/3.-Development-of-caching-algorithms).
+
+The graphs are aligned on the level of the first data block work time - the processing time for the 10*  data block  is divided by 10 times, the processing time for the 100* data block is divided by 100 times and so on. If the graph remains parallel to the earth, this means O (n) time complexity.
 
 ---
   Copyright (c) Dmitriy Bondarenko
