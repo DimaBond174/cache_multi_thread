@@ -12,9 +12,11 @@ You are in the test bench repository where the fastest algorithms for multithrea
 ![TestCase1.1thread](https://github.com/DimaBond174/cache_multi_thread/wiki/TestCase1.1thread.png)
 
 
-Step-by-step instructions on how to run a test using source code / ready-made compiled programs,
+#### Step-by-step instructions on how to run a test using source code / ready-made compiled programs,
  bench description, description of caching algorithms [here: WiKi](https://github.com/DimaBond174/cache_multi_thread/wiki)
+
 ---
+
 ## Quick Start to use cache OnCache*.h :
 
 To use OnCache * .h series templates, you need to  implement 2 methods used to search for an item by key:
@@ -61,26 +63,38 @@ And the most important thing - your Key should work as a pointer (allows =nullpt
     }
 ```
 
-To make the key self-destruct when evicting a cached item, make it part of a data object or serve as an independent shared_ptr
+To make the key self-destruct when evicting a cached item, make it part of a data object or serve as an independent shared_ptr:
 
 ```c++
 std::shared_ptr<YourKey> key;
 ```
 
 You can see examples of use in tester classes:
+
 Single threaded fastest:
+
 [TestOnCacheSMRU](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/testers/testoncachesmru.h)
+
 [TestOnCacheSMRU2](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/testers/testoncachesmru2.h)
 
+
 Multithreaded thread safe:
+
 [TestOnCacheMMRU](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/testers/testoncachemmru.h)
+
 [TestOnCacheMMRU2](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/testers/testoncachemmru2.h)
+
 [TestOnCacheMLRU](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/testers/testoncachemlru.h)
+
 [TestOnCacheMLRU2](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/testers/testoncachemlru2.h)
 
+
 How to call methods and work in parallel threads:
+
 [TestCase1](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/cases/testcase1.cpp)
+
 [TestCase2](https://github.com/DimaBond174/cache_multi_thread/blob/master/src/cases/testcase2.cpp)
+
 
 Graphs of the results of multi-threaded testing cite [here at the end of the WiKi page](https://github.com/DimaBond174/cache_multi_thread/wiki/3.-Development-of-caching-algorithms).
 
